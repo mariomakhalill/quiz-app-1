@@ -24,13 +24,18 @@ if "current_question" not in st.session_state:
 if "answered_questions" not in st.session_state:
     st.session_state.answered_questions = [False] * len(questions)
 
-# Get player name
-if not st.session_state.user_name:
-    st.session_state.user_name = st.text_input("Enter your name to start:")
-    st.stop()
-
+# Page setup
 st.set_page_config(page_title="Cyber Quiz", layout="centered")
 st.title("🔐 Cybersecurity Quiz Game")
+
+# Get player name
+if not st.session_state.user_name:
+    name = st.text_input("Enter your name to start:")
+    if name:
+        st.session_state.user_name = name
+        st.rerun()
+    st.stop()
+
 st.markdown(f"**Player:** {st.session_state.user_name}")
 
 # Show current question
@@ -44,22 +49,22 @@ if q_index < len(questions):
         if st.button("Submit Answer"):
             if user_answer == q["answer"]:
                 st.success("✅ Correct!")
-                if st.session_state.user_name not in questions[q_index]["correct_users"]:
-                    questions[q_index]["correct_users"].append(st.session_state.user_name)
+                if st.session_state.user_name not in q["correct_users"]:
+                    q["correct_users"].append(st.session_state.user_name)
             else:
                 st.error(f"❌ Incorrect! The correct answer is: **{q['answer']}**")
             st.session_state.answered_questions[q_index] = True
-            st.stop()
+            st.rerun()
 
-    # Show all users who answered correctly
-    if questions[q_index]["correct_users"]:
+    # Show users who answered correctly
+    if q["correct_users"]:
         st.info("✔️ Correct answers from:")
-        for u in questions[q_index]["correct_users"]:
+        for u in q["correct_users"]:
             st.markdown(f"- {u}")
 
     if st.button("Next"):
         st.session_state.current_question += 1
-        st.experimental_rerun()
+        st.rerun()
 else:
     st.success("🎉 You have completed the quiz!")
     st.balloons()
