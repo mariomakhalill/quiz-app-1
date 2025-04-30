@@ -26,7 +26,7 @@ if "answered_questions" not in st.session_state:
 
 # Page setup
 st.set_page_config(page_title="Cyber Quiz", layout="centered")
-st.title("🔐 Cybersecurity Quiz Game")
+st.title("🔐 Komail's Website")
 
 # Get player name
 if not st.session_state.user_name:
