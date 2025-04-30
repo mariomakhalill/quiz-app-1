@@ -1,48 +1,65 @@
 import streamlit as st
-import random
 
-# Custom cyber security questions
+# Define your quiz questions
 questions = [
     {
         "question": "In which Module in CBS can you find leaked credentials extracted by info-stealer malware from the victim’s browser?",
         "options": ["Breached Credentials", "Malware Logs", "Card Leaks", "All of them"],
-        "answer": "Malware Logs"
+        "answer": "Malware Logs",
+        "correct_users": []
     },
     {
         "question": "If a client sent a newly registered domain and it is a lookalike domain, and requested to take action on it, what should you do?",
         "options": ["Add to monitor", "Attempt to take action"],
-        "answer": "Attempt to take action"
+        "answer": "Attempt to take action",
+        "correct_users": []
     }
 ]
 
+# Initialize session state
+if "user_name" not in st.session_state:
+    st.session_state.user_name = ""
+if "current_question" not in st.session_state:
+    st.session_state.current_question = 0
+if "answered_questions" not in st.session_state:
+    st.session_state.answered_questions = [False] * len(questions)
+
+# Get player name
+if not st.session_state.user_name:
+    st.session_state.user_name = st.text_input("Enter your name to start:")
+    st.stop()
+
 st.set_page_config(page_title="Cyber Quiz", layout="centered")
-st.title("🛡️ Cyber Security Quick Quiz")
+st.title("🔐 Cybersecurity Quiz Game")
+st.markdown(f"**Player:** {st.session_state.user_name}")
 
-# Ask for user's name
-user_name = st.text_input("Enter your name to start:")
+# Show current question
+q_index = st.session_state.current_question
+if q_index < len(questions):
+    q = questions[q_index]
+    st.markdown(f"### Q{q_index + 1}: {q['question']}")
+    user_answer = st.radio("Select your answer:", q["options"], key=f"q_{q_index}")
 
-# Proceed only if name is entered
-if user_name:
-    st.success(f"Welcome, {user_name}! Let's begin your quiz.")
-    
-    score = 0
-    total = len(questions)
-    answers_submitted = []
-
-    for idx, q in enumerate(questions):
-        st.write(f"### Q{idx+1}: {q['question']}")
-        user_answer = st.radio("Select your answer:", q["options"], key=f"q_{idx}")
-        
-        if st.button(f"Submit Answer {idx+1}", key=f"submit_{idx}"):
+    if not st.session_state.answered_questions[q_index]:
+        if st.button("Submit Answer"):
             if user_answer == q["answer"]:
                 st.success("✅ Correct!")
-                score += 1
+                if st.session_state.user_name not in questions[q_index]["correct_users"]:
+                    questions[q_index]["correct_users"].append(st.session_state.user_name)
             else:
-                st.error(f"❌ Wrong! The correct answer is: **{q['answer']}**")
-            answers_submitted.append(True)
-        st.markdown("---")
+                st.error(f"❌ Incorrect! The correct answer is: **{q['answer']}**")
+            st.session_state.answered_questions[q_index] = True
+            st.stop()
 
-    if len(answers_submitted) == total:
-        st.write(f"### 🧾 {user_name}, your final score: **{score} / {total}**")
+    # Show all users who answered correctly
+    if questions[q_index]["correct_users"]:
+        st.info("✔️ Correct answers from:")
+        for u in questions[q_index]["correct_users"]:
+            st.markdown(f"- {u}")
+
+    if st.button("Next"):
+        st.session_state.current_question += 1
+        st.experimental_rerun()
 else:
-    st.info("Please enter your name to begin.")
+    st.success("🎉 You have completed the quiz!")
+    st.balloons()
